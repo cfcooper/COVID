@@ -1,0 +1,53 @@
+state_alpha,region,division,postal,state
+Illinois,Midwest,East North Central,IL,14
+Indiana,Midwest,East North Central,IN,15
+Iowa,Midwest,West North Central,IA,16
+Kansas,Midwest,West North Central,KS,17
+Michigan,Midwest,East North Central,MI,23
+Minnesota,Midwest,West North Central,MN,24
+Missouri,Midwest,West North Central,MO,26
+Nebraska,Midwest,West North Central,NE,28
+North Dakota,Midwest,West North Central,ND,35
+Ohio,Midwest,East North Central,OH,36
+South Dakota,Midwest,West North Central,SD,43
+Wisconsin,Midwest,East North Central,WI,51
+Connecticut,Northeast,New England,CT,7
+Maine,Northeast,New England,ME,20
+Massachusetts,Northeast,New England,MA,22
+New Hampshire,Northeast,New England,NH,30
+New Jersey,Northeast,Middle Atlantic,NJ,31
+New York,Northeast,Middle Atlantic,NY,33
+Pennsylvania,Northeast,Middle Atlantic,PA,39
+Rhode Island,Northeast,New England,RI,41
+Vermont,Northeast,New England,VT,47
+Delaware,South,South Atlantic,DE,8
+District of Columbia,South,South Atlantic,DC,9
+Maryland,South,South Atlantic,MD,21
+Alabama,South,East South Central,AL,1
+Arkansas,South,West South Central,AR,4
+Florida,South,South Atlantic,FL,10
+Georgia,South,South Atlantic,GA,11
+Kentucky,South,East South Central,KY,18
+Louisiana,South,West South Central,LA,19
+Mississippi,South,East South Central,MS,25
+North Carolina,South,South Atlantic,NC,34
+Oklahoma,South,West South Central,OK,37
+Puerto Rico,,,PR,40
+South Carolina,South,South Atlantic,SC,42
+Tennessee,South,East South Central,TN,44
+Texas,South,West South Central,TX,45
+Virginia,South,South Atlantic,VA,48
+West Virginia,South,South Atlantic,WV,50
+Alaska,West,Pacific,AK,2
+Arizona,West,Mountain,AZ,3
+California,West,Pacific,CA,5
+Colorado,West,Mountain,CO,6
+Hawaii,West,Pacific,HI,12
+Idaho,West,Mountain,ID,13
+Montana,West,Mountain,MT,27
+Nevada,West,Mountain,NV,29
+New Mexico,West,Mountain,NM,32
+Oregon,West,Pacific,OR,38
+Utah,West,Mountain,UT,46
+Washington,West,Pacific,WA,49
+Wyoming,West,Mountain,WY,52
