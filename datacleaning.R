@@ -17,6 +17,9 @@ rm(list=ls()) # Caution: this clears the Environment
 fulldat <- read.csv("3.0.csv")
 age_data <- read.csv("age.csv")
 income_data <- read.csv("income.csv")
+#correct_data <- read.csv("COVID 3.0 numeric 3.15.csv")
+
+#filtered_data <- fulldat[!(fulldat$responseId %in% correct_data$responseId), ]
 
 valuesdat <- subset(fulldat, select=c(1:8,142:157,164))
 demodat <- subset(fulldat, select=c(1:8,158:180))
@@ -31,14 +34,6 @@ valuesdat <- merge(valuesdat, income_data, by = "income_2023", all.x = TRUE)
 
 
 
-mean(valuesdat$Q21_1)
-mean(valuesdat$Q21_2)
-mean(valuesdat$Q21_12)
-mean(valuesdat$Q21_13)
-mean(valuesdat$Q21_14)
-mean(valuesdat$Q21_15)
-mean(valuesdat$Q21_16)
-mean(valuesdat$Q21_17)
 
 ## top factors total -----------------------------------------------------------------------------
 
@@ -57,6 +52,7 @@ factors_d <- na.omit(factors_d)
 
 density <- topfactors %>% group_by(Q101) %>%
   summarise(sum = n())
+density <- na.omit(density)
 factors_d <- left_join(factors_d, density, by = "Q101")
 factors_d$adjust <- (factors_d$count/factors_d$sum)*100
 
@@ -110,8 +106,8 @@ factors_age <- factors_age[, !names(factors_age) %in% c("fv_top_three_factors")]
 
 factors_density <- topfactors %>% group_by(Q101,fv_top_three_factors) %>%
   summarise(count = n())
-density <- topfactors %>% group_by(Q101) %>%
-  summarise(sum = n())
+##density <- topfactors %>% group_by(Q101) %>%
+##  summarise(sum = n())
 
 factors_density <- left_join(factors_density, density, by = "Q101")
 factors_density$adjust <- (factors_density$count/factors_density$sum)*100
@@ -135,7 +131,14 @@ ggplot(factors_age, aes(fill=value, y=adjust, x=age)) +
   geom_bar(position="dodge", stat="identity")
 
 ggplot(factors_density, aes(fill=value, y=adjust, x=Q101)) + 
-  geom_bar(position="dodge", stat="identity")
+  geom_bar(position="dodge", stat="identity") +
+  geom_text(aes(label = paste0(round(adjust,1), "%"), 
+            y = adjust + 1.1),  # Adjust y-coordinate for label position
+position = position_dodge(width = 0.9), 
+color = "black", size = 3) +
+  labs(title = "Top 3 Motivations for Food Purchases", x = "", y = "") +  # Change axis labels
+  theme_minimal() +
+  theme(text = element_text(size = 14))
 
 ## add regions to data ------------------------------------------------------------------------
 
@@ -173,10 +176,10 @@ valuesdat$consumerimpact <- (valuesdat$Q242_1 + valuesdat$Q242_2 + valuesdat$Q24
 
 median(valuesdat$consumerimpact)
 
-valuesdat$lowPCE <- if_else(valuesdat$consumerimpact > 25, 0, 1)
+valuesdat$lowPCE <- if_else(valuesdat$consumerimpact > 20, 0, 1)
 valuesdat$highPCE <- if_else(valuesdat$lowPCE > .5, 0, 1)
 
-PCE <- valuesdat[, c("ResponseId", "consumerimpact","highPCE")]
+PCE <- valuesdat[, c("responseId", "consumerimpact","highPCE")]
 
 highlowPCE <- valuesdat %>% group_by(poverty,highPCE) %>%
   summarise(count = n())
@@ -187,7 +190,7 @@ incomePCE <- valuesdat %>% group_by(income_2023) %>%
 regionPCE <- valuesdat %>% group_by(region) %>%
   summarise(meanval = mean(consumerimpact))
 
-topfactors <- merge(topfactors, PCE, by = "ResponseId")
+topfactors <- merge(topfactors, PCE, by = "responseId")
 
 factors_PCE <- topfactors %>% group_by(highPCE,fv_top_three_factors) %>%
   summarise(count = n())
@@ -200,6 +203,19 @@ factors_PCE <- merge(factors_PCE, values, by.x = "fv_top_three_factors", by.y = 
 factors_PCE <- factors_PCE[, !names(factors_PCE) %in% c("fv_top_three_factors")]
 
 factors_PCE$PCE <- if_else(factors_PCE$highPCE > .5, "high", "low")
+
+values_binary <- fulldat[, c("responseId", "incr_mktshopping_values","incr_brandshopping_values")]
+
+
+mktshop_values <- values_binary %>% group_by(incr_mktshopping_values) %>%
+  summarise(count = n())
+mktshop_values$adjust <- (mktshop_values$count/4562)*100
+
+
+
+brandshop_values <- values_binary %>% group_by(incr_brandshopping_values) %>%
+  summarise(count = n())
+brandshop_values$adjust <- (brandshop_values$count/4562)*100
 
 
 
@@ -223,8 +239,10 @@ rm(list = objects_to_remove)  # Caution: this clears the Environment
 
 ## analysis of value scores ---------------------------------------------------------
 
+valuesdat$test <- 1
+valuesdat <- na.omit(valuesdat)
 
-
+summary(valuesdat)
 
 mean(valuesdat$Q21_1)   # local
 mean(valuesdat$Q21_2)   # organic
@@ -235,6 +253,27 @@ mean(valuesdat$Q21_16)  # equality
 mean(valuesdat$Q21_15)  # food safety
 mean(valuesdat$Q22_6)   # worker safety
 mean(valuesdat$Q22_8)   # options on purchase method
+
+overall_values <- valuesdat %>%
+  summarise(Local = mean(Q21_1),
+            Organic = mean(Q21_2),
+            Supports_LocalEcon = mean(Q21_12),
+            Afforable = mean(Q21_13),
+            CulturalPref = mean(Q21_14),
+            GenderEqual = mean(Q21_16),
+            FoodSafety = mean(Q21_15),
+            WorkerSafety = mean(Q22_6),
+            PurchaseMethods = mean(Q22_8))
+vertical_overall <- pivot_longer(overall_values, cols = c(Local, Organic, Supports_LocalEcon, Afforable,
+                                                          CulturalPref, GenderEqual, FoodSafety, WorkerSafety, PurchaseMethods), 
+                              names_to = "variable", values_to = "value")
+vertical_overall <- vertical_overall[order(vertical_overall$value), ]
+ggplot(vertical_overall, aes(x = reorder(variable, value), y = value)) + 
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1) + theme_minimal())
+
+
+
 
 income_values <- valuesdat %>% group_by(income) %>%
   summarise(mean_local = mean(Q21_1),
@@ -262,11 +301,87 @@ income_values$income = factor(income_values$income, levels = c("Less than $10,00
                                                                "$150,000 or more"))
 
 
-ggplot(income_values, aes(y=mean_workersafe, x=income)) + 
+ggplot(income_values, aes(y=mean_purchase, x=income)) + 
+  geom_bar(position="dodge", stat="identity") + scale_y_continuous(limits = c(0, 7))
+
+vertical_data <- pivot_longer(income_values, cols = c(mean_local, mean_organic, mean_localecon, mean_affordable,
+                                             mean_culture, mean_gender, mean_foodsafe, mean_workersafe, mean_purchase), 
+                              names_to = "variable", values_to = "value")
+
+vertical_data <- na.omit(vertical_data)
+
+ggplot(vertical_data, aes(fill= income, y=value, x=variable)) + 
   geom_bar(position="dodge", stat="identity")
 
-vertical_data <- pivot_longer(data, cols = c(mean_local, mean_organic, mean_localecon,mean_affordable,), 
+
+
+factors_density <- topfactors %>% group_by(Q101,fv_top_three_factors) %>%
+  summarise(count = n())
+
+
+density_values <- valuesdat %>% group_by(density) %>%
+  summarise(mean_local = mean(Q21_1),
+            mean_organic = mean(Q21_2),
+            mean_localecon = mean(Q21_12),
+            mean_affordable = mean(Q21_13),
+            mean_culture = mean(Q21_14),
+            mean_gender = mean(Q21_16),
+            mean_foodsafe = mean(Q21_15),
+            mean_workersafe = mean(Q22_6),
+            mean_purchase = mean(Q22_8))
+
+density_vertical <- pivot_longer(density_values, cols = c(mean_local, mean_organic, mean_localecon, mean_affordable,
+                                                      mean_culture, mean_gender, mean_foodsafe, mean_workersafe, mean_purchase), 
                               names_to = "variable", values_to = "value")
+
+density_vertical <- na.omit(density_vertical)
+
+ggplot(density_vertical, aes(fill= variable, y=value, x=density)) + 
+  geom_bar(position="dodge", stat="identity") + scale_y_continuous(limits = c(0, 7))
+
+
+ggplot(density_values, aes(y=mean_local, x=density)) + 
+  geom_bar(position="dodge", stat="identity") + scale_y_continuous(limits = c(0, 7))
+
+
+ggplot(factors_density, aes(fill=value, y=adjust, x=Q101)) + 
+  geom_bar(position="dodge", stat="identity")
+
+
+## value regression --------------------------------------------------------------------------------
+
+
+local_reg <- lm(Q21_1 ~ density + male + female + HHsize + Q5 + poverty + income_2023 + educ + Q50, data = valuesdat, family = multinomial)
+summary(local_reg)
+
+gender_reg <- lm(Q21_16 ~ density + gender_other + female + HHsize + Q5 + poverty + income_2023 + educ + Q50, data = valuesdat, family = multinomial)
+summary(gender_reg)
+
+localecon_reg <- lm(Q21_12 ~ density + gender_other + female + HHsize + Q5 + poverty + income_2023 + educ + Q50, data = valuesdat, family = multinomial)
+summary(localecon_reg)
+
+organic_reg <- lm(Q21_2 ~ density + gender_other + female + HHsize + Q5 + poverty + income_2023 + educ + Q50, data = valuesdat, family = multinomial)
+summary(organic_reg)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
