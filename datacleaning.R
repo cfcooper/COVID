@@ -59,9 +59,6 @@ factors_d$adjust <- (factors_d$count/factors_d$sum)*100
 
 
 
-
-
-
 ## top factors grouped -----------------------------------------------------------------------------
 
 
@@ -139,6 +136,10 @@ color = "black", size = 3) +
   labs(title = "Top 3 Motivations for Food Purchases", x = "", y = "") +  # Change axis labels
   theme_minimal() +
   theme(text = element_text(size = 14))
+
+write.csv(factors_density, "density_factors.csv")
+
+
 
 ## add regions to data ------------------------------------------------------------------------
 
@@ -221,6 +222,8 @@ brandshop_values$adjust <- (brandshop_values$count/4562)*100
 
 ggplot(factors_PCE, aes(fill=value, y=adjust, x=PCE)) + 
   geom_bar(position="dodge", stat="identity")
+
+write.csv(factors_PCE, "PCE_factors.csv")
 
 ## create consumer impact score ----------------------------------------------------------------
 
