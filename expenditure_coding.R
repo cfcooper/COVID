@@ -8,6 +8,9 @@ library(magrittr)
 library(tidyr)
 library(reshape)
 library(haven)
+library(broom)
+library(MASS)
+
 
 rm(list=ls()) # Caution: this clears the Environment
 
@@ -111,31 +114,83 @@ write.csv(factors_density, "density_factors.csv")
 
 fulldat
 
+fulldat$comma <- str_count(fulldat$fv_top_three_factors, ",")
+topfactors <- fulldat[!fulldat$comma > 2, ]
 
-col_names <- colnames(fulldat)
+col_names <- colnames(topfactors)
 col_positions <- seq_along(col_names)
 
 # Combine column names and positions
 col_info <- data.frame(Column = col_names, Position = col_positions)
 
 
-expend_percent <- subset(fulldat, select = c(1:6,155:169,177:184,278:291,306:309,438:451,609,624:625,628:629,631,633,635:648))
+expend_percent <- subset(topfactors, select = c(1:6,155:169,177:184,278:291,306:309,438:451,609,624:625,628:629,631,633,635:648))
+expend_percent <- expend_percent[!is.na(expend_percent$localpct2023), ]
+
+
+col_names <- colnames(expend_percent)
+col_positions <- seq_along(col_names)
+
+# Combine column names and positions
+col_info <- data.frame(Column = col_names, Position = col_positions)
+
+expend_percent2 <- subset(expend_percent, select = c(63:82))
 
 #expend_percent <- expend_percent[!expend_percent$totalexp_FAH_oct23 < 5, ]
-#expend_percent <- expend_percent[!expend_percent$totalexp_FAFH_23 < 5, ]
+expend_percent <- expend_percent[!expend_percent$total_exp_2023 < 50, ]
 expend_percent <- expend_percent[!is.na(expend_percent$localpct2023), ]
 expend_percent$local <- (expend_percent$localpct2023)*100
 
+expend_percent$topfact_afford <- if_else(str_detect(expend_percent$fv_top_three_factors,"4"), 1, 0)
+expend_percent$topfact_locallygrown <- if_else(str_detect(expend_percent$fv_top_three_factors,"1"), 1, 0)
+expend_percent$topfact_organicgrown <- if_else(str_detect(expend_percent$fv_top_three_factors,"2"), 1, 0)
+expend_percent$topfact_localecon <- if_else(str_detect(expend_percent$fv_top_three_factors,"3"), 1, 0)
+expend_percent$topfact_health <- if_else(str_detect(expend_percent$fv_top_three_factors,"5"), 1, 0)
+expend_percent$topfact_society <- if_else(str_detect(expend_percent$fv_top_three_factors,"6"), 1, 0)
+expend_percent$topfact_convenient <- if_else(str_detect(expend_percent$fv_top_three_factors,"7"), 1, 0)
 
-loyal_local_reg <- lm(local ~ rucs + income_2023 + educ + female + gender_other + poverty + children + fv_locallygrown + fv_organicgrown +
-                        fv_localecon + fv_afford + fv_workers + pce_localecon + pce_society, 
+
+
+localspend_reg <- lm(localpct2023 ~ rucs + income_2023 + educ + female + gender_other + children +
+                       topfact_afford + topfact_locallygrown + topfact_organicgrown + topfact_localecon + topfact_health +
+                       topfact_society + topfact_convenient + pce_localecon + pce_society, 
                       data = expend_percent)
+summary(localspend_reg)
+regression_results <- tidy(localspend_reg)
+summary(regression_results)
+
+
+  
+loyal_local_reg <- lm(localpct2023 ~ rucs + income_2023 + educ + female + gender_other + poverty + children + fv_locallygrown + fv_organicgrown +
+                          fv_localecon + fv_afford + fv_workers + pce_localecon + pce_society , 
+                        data = expend_percent)
 summary(loyal_local_reg)
 
 
+glm_local <- glm(localpct2023 ~ rucs + income_2023 + educ + female + gender_other + children +
+               topfact_afford + topfact_locallygrown + topfact_organicgrown + topfact_localecon + topfact_health +
+               topfact_society + topfact_convenient + pce_localecon + pce_society, 
+             family = betaprobit(link = "logit"), 
+             data = expend_percent)
+summary(glm_local)
 
 
 
+
+
+
+
+
+
+
+
+## PCE regressions
+
+pce_local_reg <- lm(pce_localecon ~ rucs + income_2023 + educ + female + gender_other + children +
+                      topfact_afford + topfact_locallygrown + topfact_organicgrown + topfact_localecon + topfact_health +
+                      topfact_society + topfact_convenient, 
+                      data = expend_percent)
+summary(pce_local_reg)
 
 
 
