@@ -95,7 +95,7 @@ factors_density <- factors_density[, !names(factors_density) %in% c("fv_top_thre
 factors_density$density <- if_else(factors_density$rucc %in% c("1"), "Urban", "x")
 factors_density$density <- if_else(factors_density$rucc %in% c("2"), "Suburban", factors_density$density)
 factors_density$density <- if_else(factors_density$rucc %in% c("3"), "Rural", factors_density$density)
-
+write.csv(factors_density, "factors_density.csv")
 
 
 ggplot(factors_density, aes(fill=value, y=adjust, x=density)) + 
